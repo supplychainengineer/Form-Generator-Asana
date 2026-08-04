@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import { useToast } from '../components/Toast'
-import { usePrint } from '../components/PrintProvider'
+import { usePdf } from '../components/PdfProvider'
 import { paymentStatusOptions } from '../store/defaults'
 import { formatCurrency, todayISO } from '../lib/format'
 import DateField from '../components/DateField'
@@ -43,7 +43,7 @@ export default function NewReceipt() {
   const { getReceipt, saveReceipt, nextReceiptNumber, settings, receiptTotal } =
     useStore()
   const notify = useToast()
-  const printReceipt = usePrint()
+  const { downloadReceipt, busy } = usePdf()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const editId = params.get('id')
@@ -141,12 +141,13 @@ export default function NewReceipt() {
     navigate('/history')
   }
 
-  const handlePdf = () => {
+  const handlePdf = async () => {
     if (!validate()) {
       notify('Please fill in the required fields')
       return
     }
-    printReceipt(buildReceipt())
+    await downloadReceipt(buildReceipt())
+    notify('PDF downloaded')
   }
 
   const previewReceipt = useMemo(() => {
@@ -169,8 +170,8 @@ export default function NewReceipt() {
           <button className="btn btn-ghost" onClick={() => setShowPreview(true)}>
             <IconEye /> Show Preview
           </button>
-          <button className="btn btn-ghost" onClick={handlePdf}>
-            <IconDownload /> PDF
+          <button className="btn btn-ghost" onClick={handlePdf} disabled={busy}>
+            <IconDownload /> {busy ? 'Generating…' : 'PDF'}
           </button>
           <button className="btn btn-primary" onClick={handleSave}>
             <IconSave /> Save Receipt
@@ -410,8 +411,15 @@ export default function NewReceipt() {
             <div className="modal-head">
               <h3>Receipt Preview</h3>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-ghost" onClick={() => printReceipt(previewReceipt)}>
-                  <IconDownload /> PDF
+                <button
+                  className="btn btn-ghost"
+                  disabled={busy}
+                  onClick={async () => {
+                    await downloadReceipt(previewReceipt)
+                    notify('PDF downloaded')
+                  }}
+                >
+                  <IconDownload /> {busy ? 'Generating…' : 'PDF'}
                 </button>
                 <button className="icon-btn" onClick={() => setShowPreview(false)}>
                   <IconX />

@@ -34,19 +34,19 @@ export default function ReceiptDocument({ receipt }) {
 
   return (
     <div className="receipt-doc">
-      {/* Header */}
-      <div className="r-header">
+      {/* Header — inline colors so html2canvas reliably paints the dark bar. */}
+      <div className="r-header" style={{ backgroundColor: '#0e1626', borderBottom: '4px solid #8faa6b' }}>
         <div className="r-header-left">
           {settings.logo && (
             <div className="r-logo">
               <img src={settings.logo} alt="Practice logo" />
             </div>
           )}
-          <div className="r-provider">{providerName}</div>
+          <div className="r-provider" style={{ color: '#ffffff' }}>{providerName}</div>
         </div>
         <div className="r-header-right">
-          <div className="r-doc-type">FSA / HSA RECEIPT</div>
-          <div className="r-number">{receipt.receiptNumber}</div>
+          <div className="r-doc-type" style={{ color: '#ffffff' }}>FSA / HSA RECEIPT</div>
+          <div className="r-number" style={{ color: '#8a97ad' }}>{receipt.receiptNumber}</div>
         </div>
       </div>
 
@@ -166,9 +166,12 @@ export default function ReceiptDocument({ receipt }) {
       </div>
 
       {/* Footer */}
-      <div className="r-footer">
+      <div
+        className="r-footer"
+        style={{ backgroundColor: '#0e1626', borderTop: '4px solid #8faa6b', color: '#9aa6bd' }}
+      >
         <div className="r-foot-left">{settings.address}</div>
-        <div className="dots">•••</div>
+        <div className="dots" style={{ color: '#8faa6b' }}>•••</div>
         <div className="r-foot-right">{footerContacts}</div>
       </div>
     </div>

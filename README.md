@@ -20,7 +20,8 @@ account** — all data is stored locally in your browser's `localStorage`.
   - Live total
   - Optional practice transition note (toggled per receipt)
   - **Show Preview** of the finished receipt
-  - **PDF** export via your browser's print dialog ("Save as PDF")
+  - **PDF** — one-click download of a real PDF file (generated in-browser
+    with jsPDF; no print dialog). Also available per row in Receipt History.
   - **Save Receipt**
 - **Receipt History** — searchable, sortable table of all receipts with view,
   edit, delete, and **Export CSV**.
@@ -68,6 +69,8 @@ isn't empty — delete them any time from Receipt History.
 
 - [React 18](https://react.dev/) + [React Router](https://reactrouter.com/)
 - [Vite](https://vitejs.dev/) for dev/build
+- [jsPDF](https://github.com/parallax/jsPDF) +
+  [html2canvas](https://html2canvas.hertzen.com/) for one-click PDF download
 - Plain CSS (no UI framework) and inline SVG icons — zero external runtime
   services, works fully offline once installed.
 
@@ -86,7 +89,7 @@ src/
     Sidebar.jsx
     DateField.jsx
     ReceiptDocument.jsx   # the printable receipt
-    PrintProvider.jsx     # PDF-via-print
+    PdfProvider.jsx       # one-click PDF download (jsPDF + html2canvas)
     Toast.jsx
     icons.jsx
   pages/

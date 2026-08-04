@@ -1254,24 +1254,26 @@ input[type='checkbox'].checkbox {
   }
 }
 
-/* Off-screen while viewing; revealed only when printing. */
-.print-area {
+/* Rendered off-screen (fully painted) so html2canvas can capture it for PDF. */
+.pdf-render-area {
   position: fixed;
   left: -10000px;
   top: 0;
   width: 800px;
+  background: #fff;
+  z-index: -1;
 }
 
-/* Print */
+/* Print fallback (used only if canvas capture fails). */
 @media print {
   body * {
     visibility: hidden;
   }
-  .print-area,
-  .print-area * {
+  .pdf-render-area,
+  .pdf-render-area * {
     visibility: visible;
   }
-  .print-area {
+  .pdf-render-area {
     position: absolute;
     left: 0;
     top: 0;

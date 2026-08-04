@@ -2,7 +2,7 @@
   "name": "asana-ortho-receipt-generator",
   "private": true,
   "version": "1.0.0",
-  "description": "Asana Ortho — FSA/HSA compliant dental receipt generator (fully local, no backend).",
+  "description": "FSA/HSA compliant dental receipt generator (fully local, no backend).",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"

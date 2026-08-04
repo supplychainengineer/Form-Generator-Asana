@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/StoreContext'
 import { useToast } from '../components/Toast'
+import { usePdf } from '../components/PdfProvider'
 import { formatCurrency, formatDate } from '../lib/format'
 import {
   IconSearch,
@@ -48,6 +49,7 @@ function toCSV(rows) {
 export default function ReceiptHistory() {
   const { sortedReceipts, deleteReceipt, receiptTotal } = useStore()
   const notify = useToast()
+  const { downloadReceipt, busy } = usePdf()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
 
@@ -174,6 +176,17 @@ export default function ReceiptHistory() {
                             onClick={() => navigate(`/new?id=${r.id}`)}
                           >
                             <IconEye />
+                          </button>
+                          <button
+                            className="icon-btn"
+                            title="Download PDF"
+                            disabled={busy}
+                            onClick={async () => {
+                              await downloadReceipt(r)
+                              notify('PDF downloaded')
+                            }}
+                          >
+                            <IconDownload />
                           </button>
                           <button
                             className="icon-btn danger"

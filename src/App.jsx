@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import { ToastProvider } from './components/Toast'
-import { PrintProvider } from './components/PrintProvider'
+import { PdfProvider } from './components/PdfProvider'
 import Dashboard from './pages/Dashboard'
 import NewReceipt from './pages/NewReceipt'
 import ReceiptHistory from './pages/ReceiptHistory'
@@ -10,7 +10,7 @@ import Settings from './pages/Settings'
 export default function App() {
   return (
     <ToastProvider>
-      <PrintProvider>
+      <PdfProvider>
         <div className="app-shell">
           <Sidebar />
           <main className="main">
@@ -23,7 +23,7 @@ export default function App() {
             </Routes>
           </main>
         </div>
-      </PrintProvider>
+      </PdfProvider>
     </ToastProvider>
   )
 }
