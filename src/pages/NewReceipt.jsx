@@ -418,7 +418,7 @@ export default function NewReceipt() {
                 </button>
               </div>
             </div>
-            <div className="modal-body">
+            <div className="modal-body" style={{ padding: 0, overflow: 'hidden', borderRadius: '0 0 16px 16px' }}>
               <ReceiptDocument receipt={previewReceipt} />
             </div>
           </div>
