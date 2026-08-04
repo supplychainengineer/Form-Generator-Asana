@@ -52,6 +52,35 @@ npm run build     # build a production bundle into dist/
 npm run preview   # preview the production build locally
 ```
 
+## Sharing it with others (deploy a link)
+
+The app is a static site, so you can host it for free and share a URL.
+Each person who opens the link gets their own private copy — receipts are
+stored per-browser and are not shared between people.
+
+### Option A — GitHub Pages (automatic)
+
+A workflow at `.github/workflows/deploy.yml` builds and publishes the app on
+every push. To turn it on **once**:
+
+1. On GitHub, go to the repo's **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**.
+3. Push any change (or run the "Deploy to GitHub Pages" workflow from the
+   **Actions** tab). When it finishes, your link appears at the top of the
+   Pages settings — typically:
+   `https://<your-username>.github.io/Form-Generator-Asana/`
+
+If the deploy is blocked because it's running from a feature branch, either
+merge the branch into `main`, or in **Settings → Environments → github-pages**
+allow the branch to deploy.
+
+### Option B — Netlify / Vercel (drag-and-drop)
+
+Run `npm run build`, then drag the generated **`dist/`** folder onto
+[app.netlify.com/drop](https://app.netlify.com/drop) — it returns a public
+link instantly, no account required. Vercel and Cloudflare Pages work the
+same way by importing the repo.
+
 ## How your data is stored
 
 - Receipts and settings live in your browser under `localStorage`
