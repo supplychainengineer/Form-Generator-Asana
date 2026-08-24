@@ -979,6 +979,10 @@ input[type='checkbox'].checkbox {
   margin: 0 auto;
   font-size: 12.5px;
   line-height: 1.45;
+  /* Fill a full A4 page (210:297) so the footer anchors to the bottom. */
+  display: flex;
+  flex-direction: column;
+  min-height: 1131px;
 }
 
 /* Header */
@@ -1037,6 +1041,8 @@ input[type='checkbox'].checkbox {
 /* Body */
 .r-body {
   padding: 20px 32px 24px;
+  /* Grow to push the footer to the bottom of the page. */
+  flex: 1 1 auto;
 }
 
 .r-datebar {
