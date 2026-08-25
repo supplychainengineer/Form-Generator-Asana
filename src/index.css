@@ -565,11 +565,19 @@ select {
   height: 18px;
 }
 
-.date-icon-btn input[type='date'] {
+/* Hidden native date input: rendered (so showPicker anchors here) but does
+   not capture clicks, so the calendar button's onClick fires reliably. */
+.date-native {
   position: absolute;
-  inset: 0;
+  right: 8px;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
   opacity: 0;
-  cursor: pointer;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
 }
 
 /* Segmented toggle */

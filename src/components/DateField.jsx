@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconCalendar } from './icons'
 import { formatDate } from '../lib/format'
 
@@ -6,6 +6,7 @@ import { formatDate } from '../lib/format'
 // (YYYY-MM-DD). The calendar button opens the native date picker.
 export default function DateField({ value, onChange, placeholder = 'MM/DD/YYYY' }) {
   const [text, setText] = useState(formatDate(value))
+  const dateRef = useRef(null)
 
   useEffect(() => {
     setText(formatDate(value))
@@ -23,6 +24,19 @@ export default function DateField({ value, onChange, placeholder = 'MM/DD/YYYY' 
     }
   }
 
+  // Open the browser's native date picker. showPicker() is the reliable way;
+  // fall back to focus()+click() for older browsers.
+  const openPicker = () => {
+    const el = dateRef.current
+    if (!el) return
+    try {
+      el.showPicker()
+    } catch {
+      el.focus()
+      el.click()
+    }
+  }
+
   return (
     <div className="date-row">
       <input
@@ -31,14 +45,24 @@ export default function DateField({ value, onChange, placeholder = 'MM/DD/YYYY' 
         placeholder={placeholder}
         onChange={(e) => commitText(e.target.value)}
       />
-      <label className="date-icon-btn" title="Pick a date">
+      <button
+        type="button"
+        className="date-icon-btn"
+        title="Pick a date"
+        onClick={openPicker}
+      >
         <IconCalendar />
+        {/* Hidden native date input driven by the button above. */}
         <input
+          ref={dateRef}
           type="date"
+          className="date-native"
           value={value || ''}
+          tabIndex={-1}
+          aria-hidden="true"
           onChange={(e) => onChange(e.target.value)}
         />
-      </label>
+      </button>
     </div>
   )
 }

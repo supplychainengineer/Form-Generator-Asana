@@ -76,7 +76,7 @@ export default function NewReceipt() {
   const addPayment = () =>
     setDraft((d) => ({
       ...d,
-      payments: [...d.payments, blankPayment(`Installment ${d.payments.length + 1}`)],
+      payments: [...d.payments, blankPayment()],
     }))
 
   const removePayment = (i) =>
@@ -93,10 +93,7 @@ export default function NewReceipt() {
       payments:
         d.payments.length > 1
           ? d.payments
-          : [
-              { ...d.payments[0], label: 'Installment 1' },
-              blankPayment('Installment 2'),
-            ],
+          : [{ ...d.payments[0] }, blankPayment()],
     }))
 
   const total = useMemo(
