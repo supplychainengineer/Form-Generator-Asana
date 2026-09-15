@@ -379,7 +379,7 @@ export default function NewReceipt() {
               <IconBolt /> Payment Plan
             </button>
             <button className="link-btn" onClick={addPayment}>
-              <IconPlus /> Add Payment
+              <IconPlus /> Add Item
             </button>
           </div>
         </div>
@@ -399,21 +399,41 @@ export default function NewReceipt() {
           </select>
         </div>
 
+        {/* Datalist of the entered service names, for quick itemization. */}
+        <datalist id="service-name-options">
+          {[
+            ...new Set(
+              draft.services.map((s) => s.description.trim()).filter(Boolean)
+            ),
+          ].map((name) => (
+            <option key={name} value={name} />
+          ))}
+          <option value="Orthodontic Treatment" />
+        </datalist>
+
         {draft.payments.map((p, i) => (
           <div className="payment-block" key={i}>
             <div className="payment-block-head">
-              <div className="payment-block-title">
-                Payment #{i + 1} — {p.label || 'Orthodontic Treatment'}
-              </div>
+              <div className="payment-block-title">Item #{i + 1}</div>
               {draft.payments.length > 1 && (
                 <button
                   className="icon-btn danger"
-                  title="Remove payment"
+                  title="Remove item"
                   onClick={() => removePayment(i)}
                 >
                   <IconTrash />
                 </button>
               )}
+            </div>
+            <div className="field" style={{ marginBottom: 14 }}>
+              <span className="small-label">Description (service provided)</span>
+              <input
+                className="input"
+                list="service-name-options"
+                placeholder="e.g., Teen Comprehensive (D8080)"
+                value={p.label}
+                onChange={(e) => setPayment(i, { label: e.target.value })}
+              />
             </div>
             <div className="grid-2">
               <div>
