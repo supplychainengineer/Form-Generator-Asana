@@ -24,6 +24,18 @@ export default function ReceiptDocument({ receipt }) {
       ? receipt.responsibleName
       : receipt.patientName
 
+  // Support both the new `services` array and legacy single-service fields.
+  const services =
+    receipt.services && receipt.services.length
+      ? receipt.services
+      : [
+          {
+            description: receipt.serviceDescription || '',
+            contractDate: receipt.contractDate || '',
+            appliancePlaced: receipt.appliancePlaced || '',
+          },
+        ]
+
   const footerContacts = [
     settings.phone && `T: ${settings.phone}`,
     settings.fax && `F: ${settings.fax}`,
@@ -88,24 +100,22 @@ export default function ReceiptDocument({ receipt }) {
         {/* Service details */}
         <div className="r-section">
           <div className="r-slabel">Service Details</div>
-          <div className="r-cols3">
-            <div>
-              <div className="r-field-label">Service Description</div>
-              <div className="r-field-value">{receipt.serviceDescription || '—'}</div>
-            </div>
-            <div>
-              <div className="r-field-label">Contract Date</div>
-              <div className="r-field-value">
-                {receipt.contractDate ? formatDate(receipt.contractDate) : '—'}
-              </div>
-            </div>
-            <div>
-              <div className="r-field-label">Appliance Placed</div>
-              <div className="r-field-value">
-                {receipt.appliancePlaced ? formatDate(receipt.appliancePlaced) : '—'}
-              </div>
-            </div>
+          <div className="r-cols3 r-service-head">
+            <div className="r-field-label">Service Description</div>
+            <div className="r-field-label">Contract Date</div>
+            <div className="r-field-label">Appliance Placed</div>
           </div>
+          {services.map((s, i) => (
+            <div className="r-cols3 r-service-row" key={i}>
+              <div className="r-field-value">{s.description || '—'}</div>
+              <div className="r-field-value">
+                {s.contractDate ? formatDate(s.contractDate) : '—'}
+              </div>
+              <div className="r-field-value">
+                {s.appliancePlaced ? formatDate(s.appliancePlaced) : '—'}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Payment details */}

@@ -1104,6 +1104,20 @@ input[type='checkbox'].checkbox {
   gap: 20px;
 }
 
+/* Stacked service rows (multiple services) */
+.r-service-head {
+  margin-bottom: 4px;
+}
+
+.r-service-row {
+  padding: 6px 0;
+  border-top: 1px solid #f0f2f4;
+}
+
+.r-service-row:first-of-type {
+  border-top: none;
+}
+
 .r-name {
   font-weight: 700;
   color: #1a2233;

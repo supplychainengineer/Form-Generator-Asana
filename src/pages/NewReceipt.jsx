@@ -21,6 +21,23 @@ function blankPayment(label = 'Orthodontic Treatment') {
   return { date: '', amount: '', label }
 }
 
+function blankService() {
+  return { description: '', contractDate: '', appliancePlaced: '' }
+}
+
+// Existing receipts stored a single service (serviceDescription/contractDate/
+// appliancePlaced). Normalize any receipt into a `services` array.
+function servicesOf(r) {
+  if (r.services && r.services.length) return r.services
+  return [
+    {
+      description: r.serviceDescription || '',
+      contractDate: r.contractDate || '',
+      appliancePlaced: r.appliancePlaced || '',
+    },
+  ]
+}
+
 function emptyDraft() {
   return {
     id: null,
@@ -30,9 +47,7 @@ function emptyDraft() {
     patientAddress: '',
     responsibleType: 'self',
     responsibleName: '',
-    serviceDescription: '',
-    contractDate: '',
-    appliancePlaced: '',
+    services: [blankService()],
     paymentStatus: 'Full Payment',
     payments: [blankPayment()],
     includeTransitionNote: false,
@@ -57,7 +72,7 @@ export default function NewReceipt() {
     if (editId) {
       const existing = getReceipt(editId)
       if (existing) {
-        setDraft({ ...emptyDraft(), ...existing })
+        setDraft({ ...emptyDraft(), ...existing, services: servicesOf(existing) })
         return
       }
     }
@@ -66,6 +81,21 @@ export default function NewReceipt() {
   }, [editId])
 
   const set = (patch) => setDraft((d) => ({ ...d, ...patch }))
+
+  const setService = (i, patch) =>
+    setDraft((d) => ({
+      ...d,
+      services: d.services.map((s, idx) => (idx === i ? { ...s, ...patch } : s)),
+    }))
+
+  const addService = () =>
+    setDraft((d) => ({ ...d, services: [...d.services, blankService()] }))
+
+  const removeService = (i) =>
+    setDraft((d) => ({
+      ...d,
+      services: d.services.filter((_, idx) => idx !== i),
+    }))
 
   const setPayment = (i, patch) =>
     setDraft((d) => {
@@ -105,7 +135,7 @@ export default function NewReceipt() {
     const e = {}
     if (!draft.receiptDate) e.receiptDate = true
     if (!draft.patientName.trim()) e.patientName = true
-    if (!draft.serviceDescription.trim()) e.serviceDescription = true
+    if (!draft.services.some((s) => s.description.trim())) e.services = true
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -115,10 +145,18 @@ export default function NewReceipt() {
     const id = draft.id || crypto.randomUUID()
     const receiptNumber =
       draft.receiptNumber || nextReceiptNumber(draft.receiptDate)
+    const services = draft.services.filter((s) => s.description.trim())
+    const first = services[0] || blankService()
     return {
       ...draft,
       id,
       receiptNumber,
+      services,
+      // Keep legacy single-service fields in sync for the history table,
+      // search, and CSV export.
+      serviceDescription: services.map((s) => s.description).join(', '),
+      contractDate: first.contractDate,
+      appliancePlaced: first.appliancePlaced,
       payments: draft.payments.map((p) => ({
         ...p,
         amount: parseFloat(p.amount) || 0,
@@ -264,41 +302,70 @@ export default function NewReceipt() {
 
       {/* Service details */}
       <div className="card card-pad form-card">
-        <h3 className="form-section-title">Service Details</h3>
+        <div className="section-head" style={{ marginBottom: 20 }}>
+          <h3 className="form-section-title" style={{ margin: 0 }}>
+            Service Details
+          </h3>
+          <button className="link-btn" onClick={addService}>
+            <IconPlus /> Add Service
+          </button>
+        </div>
 
-        <div className="field">
-          <label className="label">
-            Service Description <span className="req">*</span>
-          </label>
-          <input
-            className="input"
-            placeholder="e.g., Teen Comprehensive (D8080)"
-            value={draft.serviceDescription}
-            onChange={(e) => set({ serviceDescription: e.target.value })}
-          />
-          {errors.serviceDescription && (
-            <div style={{ color: 'var(--red)', fontSize: 12, marginTop: 6 }}>
-              Service description is required
+        {draft.services.map((s, i) => (
+          <div
+            className="payment-block"
+            key={i}
+            style={i === draft.services.length - 1 ? { marginBottom: 0 } : undefined}
+          >
+            {draft.services.length > 1 && (
+              <div className="payment-block-head">
+                <div className="payment-block-title">Service #{i + 1}</div>
+                <button
+                  className="icon-btn danger"
+                  title="Remove service"
+                  onClick={() => removeService(i)}
+                >
+                  <IconTrash />
+                </button>
+              </div>
+            )}
+
+            <div className="field">
+              <label className="label">
+                Service Description {i === 0 && <span className="req">*</span>}
+              </label>
+              <input
+                className="input"
+                placeholder="e.g., Teen Comprehensive (D8080)"
+                value={s.description}
+                onChange={(e) => setService(i, { description: e.target.value })}
+              />
             </div>
-          )}
-        </div>
 
-        <div className="grid-2">
-          <div className="field">
-            <label className="label">Contract Date</label>
-            <DateField
-              value={draft.contractDate}
-              onChange={(v) => set({ contractDate: v })}
-            />
+            <div className="grid-2">
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label className="label">Contract Date</label>
+                <DateField
+                  value={s.contractDate}
+                  onChange={(v) => setService(i, { contractDate: v })}
+                />
+              </div>
+              <div className="field" style={{ marginBottom: 0 }}>
+                <label className="label">Appliance Placed</label>
+                <DateField
+                  value={s.appliancePlaced}
+                  onChange={(v) => setService(i, { appliancePlaced: v })}
+                />
+              </div>
+            </div>
           </div>
-          <div className="field">
-            <label className="label">Appliance Placed</label>
-            <DateField
-              value={draft.appliancePlaced}
-              onChange={(v) => set({ appliancePlaced: v })}
-            />
+        ))}
+
+        {errors.services && (
+          <div style={{ color: 'var(--red)', fontSize: 12, marginTop: 12 }}>
+            At least one service description is required
           </div>
-        </div>
+        )}
       </div>
 
       {/* Payment details */}
