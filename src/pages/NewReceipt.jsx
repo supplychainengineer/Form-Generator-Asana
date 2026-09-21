@@ -15,6 +15,7 @@ import {
   IconBolt,
   IconTrash,
   IconX,
+  IconCopy,
 } from '../components/icons'
 
 function blankPayment(label = 'Orthodontic Treatment') {
@@ -60,7 +61,7 @@ function emptyDraft() {
 }
 
 export default function NewReceipt() {
-  const { getReceipt, saveReceipt, nextReceiptNumber, settings, receiptTotal } =
+  const { getReceipt, saveReceipt, nextReceiptNumber, settings, receiptTotal, receipts } =
     useStore()
   const notify = useToast()
   const { downloadReceipt, busy } = usePdf()
@@ -215,6 +216,36 @@ export default function NewReceipt() {
     navigate('/history')
   }
 
+  // Save the edited receipt as a NEW copy, keeping the original intact. The
+  // copy gets a revision number like RCP-202609-0005-R2.
+  const handleSaveCopy = () => {
+    if (!validate()) {
+      notify('Please fill in the required fields')
+      return
+    }
+    const baseOf = (num) => (num || '').replace(/-R\d+$/, '')
+    const base =
+      baseOf(draft.receiptNumber) || nextReceiptNumber(draft.receiptDate)
+    // Next revision number for this base receipt.
+    let maxR = 1
+    for (const r of receipts) {
+      if (baseOf(r.receiptNumber) === base) {
+        const m = /-R(\d+)$/.exec(r.receiptNumber || '')
+        maxR = Math.max(maxR, m ? parseInt(m[1], 10) : 1)
+      }
+    }
+    const copy = {
+      ...buildReceipt(),
+      id: crypto.randomUUID(),
+      receiptNumber: `${base}-R${maxR + 1}`,
+      revisedFrom: base,
+      createdAt: new Date().toISOString(),
+    }
+    saveReceipt(copy)
+    notify(`Saved as copy ${copy.receiptNumber}`)
+    navigate('/history')
+  }
+
   const handlePdf = async () => {
     if (!validate()) {
       notify('Please fill in the required fields')
@@ -238,7 +269,11 @@ export default function NewReceipt() {
       <div className="page-head">
         <div>
           <h1 className="page-title">{draft.id ? 'Edit Receipt' : 'New Receipt'}</h1>
-          <div className="page-sub">Create an FSA/HSA compliant receipt</div>
+          <div className="page-sub">
+            {draft.id
+              ? `Editing ${draft.receiptNumber} · use “Save as Copy” to keep the original`
+              : 'Create an FSA/HSA compliant receipt'}
+          </div>
         </div>
         <div className="head-actions">
           <button className="btn btn-ghost" onClick={() => setShowPreview(true)}>
@@ -247,8 +282,13 @@ export default function NewReceipt() {
           <button className="btn btn-ghost" onClick={handlePdf} disabled={busy}>
             <IconDownload /> {busy ? 'Generating…' : 'PDF'}
           </button>
+          {draft.id && (
+            <button className="btn btn-ghost" onClick={handleSaveCopy}>
+              <IconCopy /> Save as Copy
+            </button>
+          )}
           <button className="btn btn-primary" onClick={handleSave}>
-            <IconSave /> Save Receipt
+            <IconSave /> {draft.id ? 'Save Changes' : 'Save Receipt'}
           </button>
         </div>
       </div>
