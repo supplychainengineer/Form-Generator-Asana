@@ -25,6 +25,10 @@ function blankService() {
   return { description: '', contractDate: '', appliancePlaced: '' }
 }
 
+function blankFeeLine(label = '') {
+  return { label, amount: '' }
+}
+
 // Existing receipts stored a single service (serviceDescription/contractDate/
 // appliancePlaced). Normalize any receipt into a `services` array.
 function servicesOf(r) {
@@ -48,6 +52,7 @@ function emptyDraft() {
     responsibleType: 'self',
     responsibleName: '',
     services: [blankService()],
+    feeBreakdown: [],
     paymentStatus: 'Full Payment',
     payments: [blankPayment()],
     includeTransitionNote: false,
@@ -95,6 +100,36 @@ export default function NewReceipt() {
     setDraft((d) => ({
       ...d,
       services: d.services.filter((_, idx) => idx !== i),
+    }))
+
+  const setFeeLine = (i, patch) =>
+    setDraft((d) => ({
+      ...d,
+      feeBreakdown: d.feeBreakdown.map((f, idx) =>
+        idx === i ? { ...f, ...patch } : f
+      ),
+    }))
+
+  const addFeeLine = () =>
+    setDraft((d) => {
+      // Seed useful default rows the first time it's opened.
+      if (d.feeBreakdown.length === 0) {
+        return {
+          ...d,
+          feeBreakdown: [
+            blankFeeLine('Total Treatment Fee'),
+            blankFeeLine('Insurance Estimated Payment'),
+            blankFeeLine('Patient Responsibility'),
+          ],
+        }
+      }
+      return { ...d, feeBreakdown: [...d.feeBreakdown, blankFeeLine()] }
+    })
+
+  const removeFeeLine = (i) =>
+    setDraft((d) => ({
+      ...d,
+      feeBreakdown: d.feeBreakdown.filter((_, idx) => idx !== i),
     }))
 
   const setPayment = (i, patch) =>
@@ -161,6 +196,10 @@ export default function NewReceipt() {
         ...p,
         amount: parseFloat(p.amount) || 0,
       })),
+      // Keep only fee-breakdown rows that have a label; store numeric amounts.
+      feeBreakdown: (draft.feeBreakdown || [])
+        .filter((f) => f.label.trim())
+        .map((f) => ({ label: f.label.trim(), amount: parseFloat(f.amount) || 0 })),
       createdAt: draft.createdAt || new Date().toISOString(),
     }
   }
@@ -365,6 +404,73 @@ export default function NewReceipt() {
           <div style={{ color: 'var(--red)', fontSize: 12, marginTop: 12 }}>
             At least one service description is required
           </div>
+        )}
+      </div>
+
+      {/* Fee breakdown (optional) */}
+      <div className="card card-pad form-card">
+        <div className="section-head" style={{ marginBottom: 20 }}>
+          <h3 className="form-section-title" style={{ margin: 0 }}>
+            Fee Breakdown (Optional)
+          </h3>
+          <button className="link-btn" onClick={addFeeLine}>
+            <IconPlus /> Add Line
+          </button>
+        </div>
+
+        <datalist id="fee-label-options">
+          <option value="Total Treatment Fee" />
+          <option value="Insurance Estimated Payment" />
+          <option value="Insurance Portion" />
+          <option value="Patient Responsibility" />
+          <option value="Discount / Courtesy Adjustment" />
+          <option value="Down Payment" />
+          <option value="Balance Due" />
+        </datalist>
+
+        {draft.feeBreakdown.length === 0 ? (
+          <div style={{ color: 'var(--muted)', fontSize: 13.5 }}>
+            Optionally split the treatment fee — e.g., total fee, insurance
+            estimated payment, and patient responsibility. Click “Add Line” to
+            start. This section only appears on the receipt when filled in.
+          </div>
+        ) : (
+          draft.feeBreakdown.map((f, i) => (
+            <div className="grid-2 fee-line" key={i}>
+              <div>
+                <span className="small-label">Description</span>
+                <input
+                  className="input"
+                  list="fee-label-options"
+                  placeholder="e.g., Insurance Estimated Payment"
+                  value={f.label}
+                  onChange={(e) => setFeeLine(i, { label: e.target.value })}
+                />
+              </div>
+              <div>
+                <span className="small-label">Amount ($)</span>
+                <div className="date-row">
+                  <input
+                    className="input"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={f.amount}
+                    onChange={(e) => setFeeLine(i, { amount: e.target.value })}
+                  />
+                  <button
+                    className="date-icon-btn"
+                    type="button"
+                    title="Remove line"
+                    onClick={() => removeFeeLine(i)}
+                    style={{ color: 'var(--red)' }}
+                  >
+                    <IconTrash />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
 

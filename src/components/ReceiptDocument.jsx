@@ -118,6 +118,23 @@ export default function ReceiptDocument({ receipt }) {
           ))}
         </div>
 
+        {/* Fee breakdown (only if provided) */}
+        {receipt.feeBreakdown && receipt.feeBreakdown.length > 0 && (
+          <div className="r-section">
+            <div className="r-slabel">Fee Breakdown</div>
+            <table className="r-table">
+              <tbody>
+                {receipt.feeBreakdown.map((f, i) => (
+                  <tr key={i}>
+                    <td>{f.label}</td>
+                    <td className="num">{formatCurrency(f.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {/* Payment details */}
         <div className="r-section">
           <div className="r-slabel">Payment Details</div>

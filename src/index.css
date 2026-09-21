@@ -1109,6 +1109,14 @@ input[type='checkbox'].checkbox {
   margin-bottom: 4px;
 }
 
+.fee-line {
+  margin-bottom: 14px;
+}
+
+.fee-line:last-of-type {
+  margin-bottom: 0;
+}
+
 .r-service-row {
   padding: 6px 0;
   border-top: 1px solid #f0f2f4;
