@@ -23,6 +23,23 @@ account** — all data is stored locally in your browser's `localStorage`.
   - **PDF** — one-click download of a real PDF file (generated in-browser
     with jsPDF; no print dialog). Also available per row in Receipt History.
   - **Save Receipt**
+- **Import Statement** — drop in one or more patient statement PDFs and the
+  app reads every payment received and builds the receipts for you:
+  - Patient payments are ticked automatically; insurance payments, charges,
+    adjustments and balance/summary lines are not (tick anything to include it)
+  - Patient and guarantor names are picked up from the statement; family
+    statements with several patients get one set of receipts per patient
+  - Payments already on a saved receipt (same patient, date and amount) are
+    flagged and left unticked, so re-importing a statement won't double up
+  - Dates and amounts can be corrected inline before saving
+  - Combine payments into one receipt, or one receipt per payment
+  - Statements must be text PDFs (as exported from practice software);
+    scanned images aren't supported. Files are read in your browser only.
+- **Automatic split for long receipts** — when there are more line items than
+  fit cleanly on one page (from an import or entered by hand), the receipt is
+  split into balanced one-page receipts marked "Part 1 of 2", "Part 2 of 2",
+  each with its own number and total. Fit is measured from the actual rendered
+  receipt, so logos, signatures, long addresses and notes are accounted for.
 - **Receipt History** — searchable, sortable table of all receipts with view,
   edit, delete, and **Export CSV**.
 - **Settings** — configure everything that appears on receipts:
