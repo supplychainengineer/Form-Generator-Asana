@@ -51,7 +51,7 @@ export default function ImportStatement() {
     includeTransitionNote: false,
     mode: 'combined', // 'combined' | 'each'
     dateMode: 'today', // 'today' | 'lastPayment'
-    lineLabel: 'service', // 'service' | 'statement'
+    lineLabel: 'generic', // 'generic' | 'service' | 'statement'
   })
   const setD = (patch) => setDetails((d) => ({ ...d, ...patch }))
 
@@ -211,8 +211,14 @@ export default function ImportStatement() {
 
   const buildReceipts = () => {
     const service = details.serviceDescription.trim()
-    const lineFor = (t) =>
-      details.lineLabel === 'statement' ? t.description : service || 'Orthodontic Treatment'
+    // Line items never carry the treatment/procedure code (e.g. "(D8080)").
+    const serviceNoCode =
+      service.replace(/\s*[([]?\bD\d{4}\b[)\]]?/gi, '').replace(/\s{2,}/g, ' ').trim()
+    const lineFor = (t) => {
+      if (details.lineLabel === 'statement') return t.description
+      if (details.lineLabel === 'service') return serviceNoCode || 'Orthodontic Treatment'
+      return 'Orthodontic Treatment'
+    }
     const out = []
 
     for (const g of groups) {
@@ -531,7 +537,8 @@ export default function ImportStatement() {
                   value={details.lineLabel}
                   onChange={(e) => setD({ lineLabel: e.target.value })}
                 >
-                  <option value="service">Service description</option>
+                  <option value="generic">Orthodontic Treatment</option>
+                  <option value="service">Service name (without code)</option>
                   <option value="statement">Text from the statement</option>
                 </select>
               </div>
