@@ -7,6 +7,7 @@ import { paymentStatusOptions } from '../store/defaults'
 import { formatCurrency, todayISO } from '../lib/format'
 import DateField from '../components/DateField'
 import ReceiptDocument from '../components/ReceiptDocument'
+import { splitReceipt, chunkPayments } from '../lib/receiptSplit'
 import {
   IconEye,
   IconDownload,
@@ -61,10 +62,17 @@ function emptyDraft() {
 }
 
 export default function NewReceipt() {
-  const { getReceipt, saveReceipt, nextReceiptNumber, settings, receiptTotal, receipts } =
-    useStore()
+  const {
+    getReceipt,
+    saveReceipt,
+    saveReceipts,
+    nextReceiptNumber,
+    nextReceiptNumbers,
+    settings,
+    receipts,
+  } = useStore()
   const notify = useToast()
-  const { downloadReceipt, busy } = usePdf()
+  const { downloadReceipts, busy } = usePdf()
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const editId = params.get('id')
@@ -205,14 +213,31 @@ export default function NewReceipt() {
     }
   }
 
+  // When there are more payment rows than fit cleanly on one page, the
+  // receipt is split into several one-page receipts (Part 1 of 2, ...).
+  const splitParts = (receipt) => {
+    const isNew = !draft.receiptNumber
+    let extra = null
+    return splitReceipt(receipt, settings, (i) => {
+      if (i === 0) return receipt.receiptNumber
+      if (!extra) extra = nextReceiptNumbers(Array(20).fill(receipt.receiptDate), isNew ? 1 : 0)
+      return extra[i - 1]
+    })
+  }
+
   const handleSave = () => {
     if (!validate()) {
       notify('Please fill in the required fields')
       return
     }
-    const receipt = buildReceipt()
-    saveReceipt(receipt)
-    notify(draft.id ? 'Receipt updated' : 'Receipt saved')
+    const parts = splitParts(buildReceipt())
+    if (parts.length > 1) {
+      saveReceipts(parts)
+      notify(`Saved as ${parts.length} receipts so each fits on one page`)
+    } else {
+      saveReceipt(parts[0])
+      notify(draft.id ? 'Receipt updated' : 'Receipt saved')
+    }
     navigate('/history')
   }
 
@@ -251,18 +276,26 @@ export default function NewReceipt() {
       notify('Please fill in the required fields')
       return
     }
-    await downloadReceipt(buildReceipt())
+    await downloadReceipts(splitParts(buildReceipt()))
     notify('PDF downloaded')
   }
 
-  const previewReceipt = useMemo(() => {
-    return {
+  const previewParts = useMemo(() => {
+    if (!showPreview) return []
+    return splitParts({
       ...draft,
       receiptNumber:
         draft.receiptNumber || nextReceiptNumber(draft.receiptDate),
-    }
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft, showPreview])
+  }, [draft, showPreview, settings])
+
+  // How many one-page receipts the current items need (measured).
+  const partSizes = useMemo(
+    () => chunkPayments(draft, settings).map((c) => c.length),
+    [draft, settings]
+  )
+  const partsNeeded = partSizes.length
 
   return (
     <div>
@@ -602,6 +635,14 @@ export default function NewReceipt() {
           </div>
         ))}
 
+        {partsNeeded > 1 && (
+          <div className="split-hint">
+            {draft.payments.length} items won’t fit cleanly on one receipt, so it
+            will be saved as {partsNeeded} receipts ({partSizes.join(' + ')} items),
+            each on its own page and marked “Part 1 of {partsNeeded}”, etc.
+          </div>
+        )}
+
         <div className="total-row">
           <span className="total-label">Total</span>
           <span className="total-value">{formatCurrency(total)}</span>
@@ -645,7 +686,7 @@ export default function NewReceipt() {
                   className="btn btn-ghost"
                   disabled={busy}
                   onClick={async () => {
-                    await downloadReceipt(previewReceipt)
+                    await downloadReceipts(previewParts)
                     notify('PDF downloaded')
                   }}
                 >
@@ -656,8 +697,12 @@ export default function NewReceipt() {
                 </button>
               </div>
             </div>
-            <div className="modal-body" style={{ padding: 0, overflow: 'hidden', borderRadius: '0 0 16px 16px' }}>
-              <ReceiptDocument receipt={previewReceipt} />
+            <div className="modal-body" style={{ padding: 0, overflow: 'auto', borderRadius: '0 0 16px 16px' }}>
+              {previewParts.map((r, i) => (
+                <div key={r.id || i} className={i > 0 ? 'preview-part-gap' : undefined}>
+                  <ReceiptDocument receipt={r} />
+                </div>
+              ))}
             </div>
           </div>
         </div>

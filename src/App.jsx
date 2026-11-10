@@ -4,6 +4,7 @@ import { ToastProvider } from './components/Toast'
 import { PdfProvider } from './components/PdfProvider'
 import Dashboard from './pages/Dashboard'
 import NewReceipt from './pages/NewReceipt'
+import ImportStatement from './pages/ImportStatement'
 import ReceiptHistory from './pages/ReceiptHistory'
 import Settings from './pages/Settings'
 
@@ -17,6 +18,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/new" element={<NewReceipt />} />
+              <Route path="/import" element={<ImportStatement />} />
               <Route path="/history" element={<ReceiptHistory />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<Navigate to="/" replace />} />

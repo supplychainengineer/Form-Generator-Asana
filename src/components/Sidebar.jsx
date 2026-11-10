@@ -6,11 +6,13 @@ import {
   IconFilePlus,
   IconReceipt,
   IconSettings,
+  IconUpload,
 } from './icons'
 
 const links = [
   { to: '/', label: 'Dashboard', icon: IconDashboard, end: true },
   { to: '/new', label: 'New Receipt', icon: IconFilePlus },
+  { to: '/import', label: 'Import Statement', icon: IconUpload },
   { to: '/history', label: 'Receipt History', icon: IconReceipt },
   { to: '/settings', label: 'Settings', icon: IconSettings },
 ]

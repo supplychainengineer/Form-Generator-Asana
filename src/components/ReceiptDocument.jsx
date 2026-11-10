@@ -14,8 +14,17 @@ function statusWord(status) {
 // configured practice settings. Used both in the on-screen preview and when
 // exporting to PDF (via the browser print dialog).
 export default function ReceiptDocument({ receipt }) {
-  const { settings, receiptTotal } = useStore()
-  const total = receiptTotal(receipt)
+  const { settings } = useStore()
+  return <ReceiptView receipt={receipt} settings={settings} />
+}
+
+// Pure version (no store access) so it can also be rendered off-screen to
+// measure how many payment rows fit on a page.
+export function ReceiptView({ receipt, settings }) {
+  const total = (receipt.payments || []).reduce(
+    (sum, p) => sum + (parseFloat(p.amount) || 0),
+    0
+  )
   const providerName = settings.providerName || 'Your Practice Name'
   const word = statusWord(receipt.paymentStatus)
 
@@ -59,6 +68,11 @@ export default function ReceiptDocument({ receipt }) {
         <div className="r-header-right">
           <div className="r-doc-type" style={{ color: '#ffffff' }}>FSA / HSA RECEIPT</div>
           <div className="r-number" style={{ color: '#8a97ad' }}>{receipt.receiptNumber}</div>
+          {receipt.partCount > 1 && (
+            <div className="r-number" style={{ color: '#8faa6b' }}>
+              Part {receipt.part} of {receipt.partCount}
+            </div>
+          )}
         </div>
       </div>
 
@@ -159,7 +173,9 @@ export default function ReceiptDocument({ receipt }) {
                 </tr>
               ))}
               <tr className="r-total-row">
-                <td colSpan={2}>Total Amount Paid</td>
+                <td colSpan={2}>
+                  {receipt.partCount > 1 ? 'Total Amount Paid (this receipt)' : 'Total Amount Paid'}
+                </td>
                 <td className="num">{formatCurrency(total)}</td>
               </tr>
             </tbody>
